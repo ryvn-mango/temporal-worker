@@ -9,9 +9,9 @@ logger = logging.getLogger("temporal-worker")
 
 @activity.defn
 async def complete_after_delay() -> str:
-    logger.info("Activity started, waiting 30 seconds before completing")
-    await asyncio.sleep(30)
-    logger.info("30 second delay elapsed, completing")
+    logger.info("Activity started, waiting 1 minute before completing")
+    await asyncio.sleep(60)
+    logger.info("1 minute delay elapsed, completing")
     return "completed"
 
 
