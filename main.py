@@ -50,6 +50,7 @@ async def start_temporal_worker():
         namespace=TEMPORAL_NAMESPACE,
         rpc_metadata={"temporal-namespace": TEMPORAL_NAMESPACE},
         api_key=TEMPORAL_API_KEY,
+        tls=True,
     )
     worker = Worker(
         client,
