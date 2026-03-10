@@ -2,12 +2,12 @@ import asyncio
 import logging
 import os
 import time
-from datetime import timedelta
 
 from fastapi import FastAPI, Request
-from temporalio import activity, workflow
 from temporalio.client import Client
 from temporalio.worker import Worker
+
+from workflows import PlaceholderWorkflow, complete_after_delay
 
 logging.basicConfig(
     level=logging.INFO,
@@ -21,26 +21,6 @@ TEMPORAL_API_KEY = os.environ["TEMPORAL_API_KEY"]
 TASK_QUEUE = "temporal-worker-queue"
 
 app = FastAPI(title="temporal-worker")
-
-
-@activity.defn
-async def complete_after_delay() -> str:
-    logger.info("Activity started, waiting 10 minutes before completing")
-    await asyncio.sleep(600)
-    logger.info("10 minute delay elapsed, completing")
-    return "completed"
-
-
-@workflow.defn
-class PlaceholderWorkflow:
-    @workflow.run
-    async def run(self) -> str:
-        logger.info("Workflow started, scheduling delayed completion")
-        result = await workflow.execute_activity(
-            complete_after_delay,
-            start_to_close_timeout=timedelta(minutes=15),
-        )
-        return result
 
 
 async def start_temporal_worker():
