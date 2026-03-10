@@ -15,12 +15,26 @@ def _burn_cpu(work_units: int) -> int:
 @workflow.defn
 class PlaceholderWorkflow:
     @workflow.run
-    async def run(self, work_units: int) -> str:
-        logger.info("Workflow started with %d work units", work_units)
+    async def run(self, config: dict[str, int]) -> str:
+        rounds = int(config["rounds"])
+        work_units = int(config["work_units"])
+        pause_seconds = int(config["pause_seconds"])
 
-        # Demo-only: spend CPU in the workflow task itself so backlog appears
-        # on the workflow queue instead of the activity queue.
-        checksum = _burn_cpu(work_units)
+        logger.info(
+            "Workflow started with %d rounds, %d work units per round, %d second pause",
+            rounds,
+            work_units,
+            pause_seconds,
+        )
 
-        logger.info("Workflow finished CPU burn with checksum %d", checksum)
+        checksum = 0
+        for round_index in range(rounds):
+            # Keep each workflow task short enough to avoid Temporal's
+            # deadlock detector while still creating meaningful queue work.
+            checksum = _burn_cpu(work_units)
+
+            if round_index + 1 < rounds:
+                await workflow.sleep(pause_seconds)
+
+        logger.info("Workflow finished %d rounds with checksum %d", rounds, checksum)
         return f"completed:{checksum}"
