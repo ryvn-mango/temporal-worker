@@ -7,6 +7,15 @@ with workflow.unsafe.imports_passed_through():
 
 
 @workflow.defn
+class PlaceholderWorkflow:
+    """Backward-compat: drain any old queued PlaceholderWorkflow executions."""
+
+    @workflow.run
+    async def run(self, config: dict) -> str:
+        return "drained"
+
+
+@workflow.defn
 class DoWorkWorkflow:
     @workflow.run
     async def run(self, duration_seconds: int) -> str:

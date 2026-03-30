@@ -8,7 +8,7 @@ from temporalio.client import Client
 from temporalio.worker import Worker
 
 from activities import do_work
-from workflows import DoWorkWorkflow
+from workflows import DoWorkWorkflow, PlaceholderWorkflow
 
 logging.basicConfig(
     level=logging.INFO,
@@ -36,7 +36,7 @@ async def start_temporal_worker():
     worker = Worker(
         client,
         task_queue=TASK_QUEUE,
-        workflows=[DoWorkWorkflow],
+        workflows=[DoWorkWorkflow, PlaceholderWorkflow],
         activities=[do_work],
     )
     logger.info("Starting Temporal worker on queue '%s'", TASK_QUEUE)
