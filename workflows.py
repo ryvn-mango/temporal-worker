@@ -1,40 +1,17 @@
-import logging
+from datetime import timedelta
 
 from temporalio import workflow
 
-logger = logging.getLogger("temporal-worker")
-
-
-def _burn_cpu(work_units: int) -> int:
-    total = 0
-    for i in range(work_units):
-        total = (total + ((i * 17) % 13)) % 1_000_000_007
-    return total
+with workflow.unsafe.imports_passed_through():
+    from activities import do_work
 
 
 @workflow.defn
-class PlaceholderWorkflow:
+class DoWorkWorkflow:
     @workflow.run
-    async def run(self, config: dict[str, int]) -> str:
-        rounds = int(config["rounds"])
-        work_units = int(config["work_units"])
-        pause_seconds = int(config["pause_seconds"])
-
-        logger.info(
-            "Workflow started with %d rounds, %d work units per round, %d second pause",
-            rounds,
-            work_units,
-            pause_seconds,
+    async def run(self, duration_seconds: int) -> str:
+        return await workflow.execute_activity(
+            do_work,
+            duration_seconds,
+            start_to_close_timeout=timedelta(minutes=2),
         )
-
-        checksum = 0
-        for round_index in range(rounds):
-            # Keep each workflow task short enough to avoid Temporal's
-            # deadlock detector while still creating meaningful queue work.
-            checksum = _burn_cpu(work_units)
-
-            if round_index + 1 < rounds:
-                await workflow.sleep(pause_seconds)
-
-        logger.info("Workflow finished %d rounds with checksum %d", rounds, checksum)
-        return f"completed:{checksum}"
