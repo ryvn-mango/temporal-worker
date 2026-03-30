@@ -38,6 +38,7 @@ async def start_temporal_worker():
         task_queue=TASK_QUEUE,
         workflows=[DoWorkWorkflow, PlaceholderWorkflow],
         activities=[do_work],
+        max_concurrent_activities=5,
     )
     logger.info("Starting Temporal worker on queue '%s'", TASK_QUEUE)
     await worker.run()
